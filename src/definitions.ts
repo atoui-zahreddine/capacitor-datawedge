@@ -3,7 +3,7 @@ import type { PluginListenerHandle } from '@capacitor/core';
 export interface ScanListenerEvent {
   /**
    * Data of barcode
-   * 
+   *
    * @since 0.1.0
    */
   data: string;
@@ -18,13 +18,28 @@ export interface ScanListenerEvent {
 
 export type ScanListener = (state: ScanListenerEvent) => void;
 
-export interface DataWedgePlugin {
+export type BroadcastReceiverFilter = {
+  filterActions: string[];
+  filterCategories: string[];
+};
 
+export type JsonObject = {
+  [key: string]:
+    | string
+    | number
+    | boolean
+    | JsonObject
+    | string[]
+    | number[]
+    | boolean[]
+    | JsonObject[];
+};
+export interface DataWedgePlugin {
   /**
    * Enables DataWedge
    *
-   * Broadcasts intent action with `.ENABLE_DATAWEDGE` extra set to `true` 
-   * 
+   * Broadcasts intent action with `.ENABLE_DATAWEDGE` extra set to `true`
+   *
    * @since 0.0.3
    */
   enable(): Promise<void>;
@@ -33,7 +48,7 @@ export interface DataWedgePlugin {
    * Disables DataWedge
    *
    * Broadcasts intent action with `.ENABLE_DATAWEDGE` extra set to `false`
-   * 
+   *
    * @since 0.0.3
    */
   disable(): Promise<void>;
@@ -42,7 +57,7 @@ export interface DataWedgePlugin {
    * Enables physical scanner
    *
    * Broadcasts intent action with `.SCANNER_INPUT_PLUGIN` extra set to `ENABLE_PLUGIN`
-   * 
+   *
    * @since 0.0.3
    */
   enableScanner(): Promise<void>;
@@ -51,7 +66,7 @@ export interface DataWedgePlugin {
    * Disables physical scanner
    *
    * Broadcasts intent action with `.SCANNER_INPUT_PLUGIN` extra set to `DISABLE_PLUGIN`
-   * 
+   *
    * @since 0.0.3
    */
   disableScanner(): Promise<void>;
@@ -75,22 +90,35 @@ export interface DataWedgePlugin {
   stopScanning(): Promise<void>;
 
   /**
-  * Listen for successful barcode readings
-  * 
-  * ***Notice:*** Requires intent action to be set to `com.capacitor.datawedge.RESULT_ACTION` in current DataWedge profile (it may change in the future)
-  *
-  * @since 0.1.0
-  */
+   * Register broadcast receiver
+   *
+   * @since 0.3.0
+   */
+  registerBroadcastReceiver(filter: BroadcastReceiverFilter): Promise<void>;
+
+  /**
+   * Send broadcast with extras
+   *
+   * @since 0.3.0
+   */
+  sendBroadcastWithExtras(action: string, extras: JsonObject): Promise<void>;
+  /**
+   * Listen for successful barcode readings
+   *
+   * ***Notice:*** Requires intent action to be set to `com.capacitor.datawedge.RESULT_ACTION` in current DataWedge profile (it may change in the future)
+   *
+   * @since 0.1.0
+   */
   addListener(
-    eventName: 'scan',
-    listenerFunc: ScanListener
+    eventName: 'scan' | 'broadcast',
+    listenerFunc: ScanListener | JsonObject,
   ): Promise<PluginListenerHandle> & PluginListenerHandle;
 
   /**
-   * Internal method to register intent broadcast receiver 
+   * Internal method to register intent broadcast receiver
    *
    * THIS METHOD IS FOR INTERNAL USE ONLY
-   * 
+   *
    * @since 0.1.3
    * @private
    */
