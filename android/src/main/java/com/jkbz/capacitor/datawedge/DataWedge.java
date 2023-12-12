@@ -6,6 +6,7 @@ import android.content.Intent;
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.Iterator;
 
