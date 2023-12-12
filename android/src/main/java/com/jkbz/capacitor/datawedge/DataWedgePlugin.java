@@ -15,6 +15,7 @@ import android.util.Log;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Arrays;
 import java.util.Iterator;
 
 
@@ -101,7 +102,7 @@ public class DataWedgePlugin extends Plugin {
             JSObject extrasObject = call.getObject("extras");
 
             if (extrasObject != null) {
-                Bundle extrasBundle = implementation.toBundle(extrasObject);
+                Bundle extrasBundle = DataWedge.toBundle(extrasObject);
                 intent.putExtras(extrasBundle);
             }
 
@@ -199,7 +200,7 @@ public class DataWedgePlugin extends Plugin {
             // Check if extras is null before attempting to get keys
             JSObject extras = new JSObject();
             if (intent.getExtras() != null) {
-                extras = convertBundleToJson(intent.getExtras());
+                extras = DataWedge.bundleToJSObject(intent.getExtras());
             }
 
             ret.put("extras", extras);
@@ -207,14 +208,6 @@ public class DataWedgePlugin extends Plugin {
             notifyListeners("broadcast", ret);
         }
 
-        private JSObject convertBundleToJson(Bundle bundle) {
-            JSObject json = new JSObject();
-            for (String key : bundle.keySet()) {
-                Object value = bundle.get(key);
-                json.put(key, JSONObject.wrap(value));
-            }
-            return json;
-        }
     };
 
 

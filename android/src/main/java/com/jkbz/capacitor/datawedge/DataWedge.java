@@ -61,7 +61,7 @@ public class DataWedge {
         return intent;
     }
 
-    public Bundle toBundle(JSObject json) throws JSONException {
+    public static Bundle toBundle(JSObject json) throws JSONException {
         Bundle bundle = new Bundle();
         Iterator<String> keys = json.keys();
 
@@ -88,6 +88,31 @@ public class DataWedge {
         }
 
         return bundle;
+    }
+    public static JSObject bundleToJSObject(Bundle bundle) {
+        JSObject jsObject = new JSObject();
+
+        for (String key : bundle.keySet()) {
+            Object value = bundle.get(key);
+
+            if (value instanceof Boolean) {
+                jsObject.put(key, (Boolean) value);
+            } else if (value instanceof Integer) {
+                jsObject.put(key, (Integer) value);
+            } else if (value instanceof Long) {
+                jsObject.put(key, (Long) value);
+            } else if (value instanceof Double) {
+                jsObject.put(key, (Double) value);
+            } else if (value instanceof String) {
+                jsObject.put(key, (String) value);
+            } else if (value instanceof Bundle) {
+                jsObject.put(key, bundleToJSObject((Bundle) value));
+            } else {
+                jsObject.put(key, value != null ? value.toString() : JSONObject.NULL);
+            }
+        }
+
+        return jsObject;
     }
 }
 
