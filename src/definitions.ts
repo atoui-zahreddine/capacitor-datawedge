@@ -17,7 +17,7 @@ export interface ScanListenerEvent {
 }
 
 export type ScanListener = (state: ScanListenerEvent) => void;
-
+export type BroadcastListener = (state: JsonObject) => void;
 export type BroadcastReceiverFilter = {
   filterActions: string[];
   filterCategories: string[];
@@ -34,6 +34,12 @@ export type JsonObject = {
     | boolean[]
     | JsonObject[];
 };
+
+export type BroadcastIntent = {
+  action: string;
+  extras: JsonObject;
+}
+
 export interface DataWedgePlugin {
   /**
    * Enables DataWedge
@@ -101,7 +107,7 @@ export interface DataWedgePlugin {
    *
    * @since 0.3.0
    */
-  sendBroadcastWithExtras(action: string, extras: JsonObject): Promise<void>;
+  sendBroadcastWithExtras(intent:BroadcastIntent): Promise<void>;
   /**
    * Listen for successful barcode readings
    *
@@ -111,9 +117,15 @@ export interface DataWedgePlugin {
    */
   addListener(
     eventName: 'scan' | 'broadcast',
-    listenerFunc: ScanListener | JsonObject,
+    listenerFunc: ScanListener | BroadcastListener,
   ): Promise<PluginListenerHandle> & PluginListenerHandle;
 
+  /**
+   * Remove all listeners
+   *
+   * @since 0.3.0
+   */
+  removeAllListeners(): Promise<void>;
   /**
    * Internal method to register intent broadcast receiver
    *

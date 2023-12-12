@@ -53,6 +53,7 @@ DataWedge.addListener('scan', event => {
 * [`registerBroadcastReceiver(...)`](#registerbroadcastreceiver)
 * [`sendBroadcastWithExtras(...)`](#sendbroadcastwithextras)
 * [`addListener('scan' | 'broadcast', ...)`](#addlistenerscan--broadcast)
+* [`removeAllListeners()`](#removealllisteners)
 * [`__registerReceiver()`](#__registerreceiver)
 * [Interfaces](#interfaces)
 * [Type Aliases](#type-aliases)
@@ -176,15 +177,14 @@ Register broadcast receiver
 ### sendBroadcastWithExtras(...)
 
 ```typescript
-sendBroadcastWithExtras(action: string, extras: JsonObject) => Promise<void>
+sendBroadcastWithExtras(intent: BroadcastIntent) => Promise<void>
 ```
 
 Send broadcast with extras
 
-| Param        | Type                                              |
-| ------------ | ------------------------------------------------- |
-| **`action`** | <code>string</code>                               |
-| **`extras`** | <code><a href="#jsonobject">JsonObject</a></code> |
+| Param        | Type                                                        |
+| ------------ | ----------------------------------------------------------- |
+| **`intent`** | <code><a href="#broadcastintent">BroadcastIntent</a></code> |
 
 **Since:** 0.3.0
 
@@ -194,21 +194,34 @@ Send broadcast with extras
 ### addListener('scan' | 'broadcast', ...)
 
 ```typescript
-addListener(eventName: 'scan' | 'broadcast', listenerFunc: ScanListener | JsonObject) => Promise<PluginListenerHandle> & PluginListenerHandle
+addListener(eventName: 'scan' | 'broadcast', listenerFunc: ScanListener | BroadcastListener) => Promise<PluginListenerHandle> & PluginListenerHandle
 ```
 
 Listen for successful barcode readings
 
 ***Notice:*** Requires intent action to be set to `com.capacitor.datawedge.RESULT_ACTION` in current DataWedge profile (it may change in the future)
 
-| Param              | Type                                                                                          |
-| ------------------ | --------------------------------------------------------------------------------------------- |
-| **`eventName`**    | <code>'scan' \| 'broadcast'</code>                                                            |
-| **`listenerFunc`** | <code><a href="#jsonobject">JsonObject</a> \| <a href="#scanlistener">ScanListener</a></code> |
+| Param              | Type                                                                                                        |
+| ------------------ | ----------------------------------------------------------------------------------------------------------- |
+| **`eventName`**    | <code>'scan' \| 'broadcast'</code>                                                                          |
+| **`listenerFunc`** | <code><a href="#scanlistener">ScanListener</a> \| <a href="#broadcastlistener">BroadcastListener</a></code> |
 
 **Returns:** <code>Promise&lt;<a href="#pluginlistenerhandle">PluginListenerHandle</a>&gt; & <a href="#pluginlistenerhandle">PluginListenerHandle</a></code>
 
 **Since:** 0.1.0
+
+--------------------
+
+
+### removeAllListeners()
+
+```typescript
+removeAllListeners() => Promise<void>
+```
+
+Remove all listeners
+
+**Since:** 0.3.0
 
 --------------------
 
@@ -254,6 +267,11 @@ THIS METHOD IS FOR INTERNAL USE ONLY
 <code>{ filterActions: string[]; filterCategories: string[]; }</code>
 
 
+#### BroadcastIntent
+
+<code>{ action: string; extras: <a href="#jsonobject">JsonObject</a>; }</code>
+
+
 #### JsonObject
 
 <code>{ [key: string]: | string | number | boolean | <a href="#jsonobject">JsonObject</a> | string[] | number[] | boolean[] | JsonObject[]; }</code>
@@ -262,6 +280,11 @@ THIS METHOD IS FOR INTERNAL USE ONLY
 #### ScanListener
 
 <code>(state: <a href="#scanlistenerevent">ScanListenerEvent</a>): void</code>
+
+
+#### BroadcastListener
+
+<code>(state: <a href="#jsonobject">JsonObject</a>): void</code>
 
 </docgen-api>
 
