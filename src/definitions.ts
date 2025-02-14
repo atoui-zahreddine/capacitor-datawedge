@@ -118,7 +118,7 @@ export interface DataWedgePlugin {
   addListener(
     eventName: 'scan' | 'broadcast',
     listenerFunc: ScanListener | BroadcastListener,
-  ): Promise<PluginListenerHandle> & PluginListenerHandle;
+  ): Promise<PluginListenerHandle>;
 
   /**
    * Remove all listeners
