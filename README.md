@@ -23,7 +23,7 @@ To use the `DataWedge` plugin with the DataWedge API, follow these steps:
    ```typescript
    import { DataWedge } from 'capacitor-datawedge';
 
-   const filterActions = ["com.symbol.datawedge.api.RESULT_ACTION", "com.zebra.bumbal.ACTION"];
+   const filterActions = ["com.symbol.datawedge.api.RESULT_ACTION", "com.your.app.ACTION"];
    const filterCategories = ["android.intent.category.DEFAULT"];
    const filter = { filterActions, filterCategories };
 
@@ -123,7 +123,7 @@ if (Capacitor.getPlatform() === "android") {
     await this.sendCommand("com.symbol.datawedge.api.SET_CONFIG", firstProfileConfig)
 
     const secondProfileConfig = {
-      PROFILE_NAME: "Bumbal v2",
+      PROFILE_NAME: "profile_name",
       PROFILE_ENABLED: "true",
       CONFIG_MODE: "UPDATE",
       PLUGIN_CONFIG: {
