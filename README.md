@@ -1,17 +1,12 @@
 # Capacitor DataWedge - community maintained plugin
 
-![capacitor-version](https://img.shields.io/badge/Capacitor-v5-lightgreen)
-![capacitor-version](https://img.shields.io/badge/Capacitor-v3--v4-orange)
+![capacitor-version](https://img.shields.io/badge/Capacitor-v6-lightgreen)
 ![version](https://img.shields.io/npm/v/capacitor-datawedge)
 ![downloads](https://img.shields.io/npm/dm/capacitor-datawedge)
 ![contributors](https://img.shields.io/github/contributors/jkbz64/capacitor-datawedge)
 ![license](https://img.shields.io/npm/l/capacitor-datawedge)
 
 This plugin allows you to simply gain access to receiving barcode data and use some api methods from the DataWedge API designed for Capacitor with Zebra devices.
-
-`capacitor-datawedge` project is ***unofficial*** and completely community maintained, do not mistake this plugin with the official [Zebra Scanner](https://ionic.io/docs/zebra-datawedge) plugin.
-
-It is advised to use official plugin for full compatibility and guaranteed support, this project was created before the official plugin existed and is maintained by people who use it - ***it does not aim for full compatibility***, features are added when someone cares enough to share the changes with other people in the true open source nature.
 
 ## Install
 
@@ -20,41 +15,153 @@ npm install capacitor-datawedge
 npx cap sync
 ```
 
-The last supported version for Capacitor v3 is `capacitor-datawedge@0.1.3`
-
-The last supported version for Capacitor v4 is `capacitor-datawedge@0.2.1`
-
 ## Usage
 
-Enable intent output in your DataWedge profile, set `Intent delivery` to `Broadcast intent` and set `Intent action` to `com.capacitor.datawedge.RESULT_ACTION`
+To use the `DataWedge` plugin with the DataWedge API, follow these steps:
 
-```js
+1. **Register the broadcast receiver**:
+   ```typescript
+   import { DataWedge } from 'capacitor-datawedge';
+
+   const filterActions = ["com.symbol.datawedge.api.RESULT_ACTION", "com.zebra.bumbal.ACTION"];
+   const filterCategories = ["android.intent.category.DEFAULT"];
+   const filter = { filterActions, filterCategories };
+
+   await DataWedge.registerBroadcastReceiver(filter);
+   ```
+
+2. **Send a command to get the version info**:
+   ```typescript
+   const intent = {
+     action: "com.symbol.datawedge.api.ACTION",
+     extras: { "com.symbol.datawedge.api.GET_VERSION_INFO": "" }
+   };
+
+   await DataWedge.sendBroadcastWithExtras(intent);
+   ```
+
+3. **Listen for broadcast events**:
+   ```typescript
+   DataWedge.addListener('broadcast', (state) => {
+     console.log('Received broadcast:', state);
+   });
+   ```
+
+4. **Remove all listeners** (when needed):
+   ```typescript
+   await DataWedge.removeAllListeners();
+   ```
+
+### Example
+
+```typescript
+import { Capacitor } from "@capacitor/core";
 import { DataWedge } from 'capacitor-datawedge';
 
-// Register scan listener to receive barcode data
-DataWedge.addListener('scan', event => {
-  console.log(event.data);
-});
+if (Capacitor.getPlatform() === "android") {
+  const filterActions = ["com.symbol.datawedge.api.RESULT_ACTION", "com.your.app.ACTION"];
+  const filterCategories = ["android.intent.category.DEFAULT"];
+  const filter = { filterActions, filterCategories };
 
-// Scanning the barcode using physical trigger should fire up your scan callback!
-// Check API for more methods
+  DataWedge.registerBroadcastReceiver(filter)
+    .then(() => {
+      console.log("Broadcast receiver registered");
+
+      const intent = {
+        action: "com.symbol.datawedge.api.ACTION",
+        extras: { "com.symbol.datawedge.api.GET_VERSION_INFO": "" }
+      };
+
+      return DataWedge.sendBroadcastWithExtras(intent);
+    })
+    .then(() => {
+      console.log("Version info command sent");
+    })
+    .catch((e) => {
+      console.error("Error during setup", e);
+    });
+
+  DataWedge.addListener('broadcast', (intent) => {
+    const extras = intent["extras"] as JsonObject
+
+    if (extras) {
+      const extrasKeys = Object.keys(extras)
+
+      for (const extrasKey of extrasKeys) {
+        switch (extrasKey) {
+          case "com.symbol.datawedge.api.RESULT_GET_VERSION_INFO":
+            // create a datawedge profile
+            break
+
+          case "com.symbol.datawedge.data_string":
+            // A barcode has been scanned
+            break
+        }
+      }
+    }
+  });
+
+  const createDataWedgeProfile = async () => {
+    await this.sendCommand("com.symbol.datawedge.api.CREATE_PROFILE", "profile_name")
+
+    const firstProfileConfig = {
+      PROFILE_NAME: "profile_name",
+      PROFILE_ENABLED: "true",
+      CONFIG_MODE: "UPDATE",
+      PLUGIN_CONFIG: {
+        PLUGIN_NAME: "BARCODE",
+        RESET_CONFIG: "true",
+        PARAM_LIST: {}
+      },
+      APP_LIST: [
+        {
+          PACKAGE_NAME: "com.your.app",
+          ACTIVITY_LIST: ["*"]
+        }
+      ]
+    }
+    await this.sendCommand("com.symbol.datawedge.api.SET_CONFIG", firstProfileConfig)
+
+    const secondProfileConfig = {
+      PROFILE_NAME: "Bumbal v2",
+      PROFILE_ENABLED: "true",
+      CONFIG_MODE: "UPDATE",
+      PLUGIN_CONFIG: {
+        PLUGIN_NAME: "INTENT",
+        RESET_CONFIG: "true",
+        PARAM_LIST: {
+          intent_output_enabled: "true",
+          intent_action: "com.your.app.ACTION",
+          intent_category: "android.intent.category.DEFAULT",
+          intent_delivery: "2"
+        }
+      }
+    }
+    await this.sendCommand("com.symbol.datawedge.api.SET_CONFIG", secondProfileConfig)
+  }
+
+  const sendCommand = async (extraName: string, extraValue: string | JsonObject): Promise<void> => {
+    let broadcastExtras = {}
+    broadcastExtras[extraName] = extraValue
+    await DataWedge.sendBroadcastWithExtras({
+      action: "com.symbol.datawedge.api.ACTION",
+      extras: broadcastExtras
+    })
+  }
+}
 ```
+
+This example demonstrates the basic steps to register the broadcast receiver, send a command to get version info, and listen for broadcast events using the `DataWedge` plugin.
+
 
 ## API
 
 <docgen-index>
 
-* [`enable()`](#enable)
-* [`disable()`](#disable)
-* [`enableScanner()`](#enablescanner)
-* [`disableScanner()`](#disablescanner)
-* [`startScanning()`](#startscanning)
-* [`stopScanning()`](#stopscanning)
 * [`registerBroadcastReceiver(...)`](#registerbroadcastreceiver)
 * [`sendBroadcastWithExtras(...)`](#sendbroadcastwithextras)
-* [`addListener('scan' | 'broadcast', ...)`](#addlistenerscan--broadcast)
+* [`addListener('broadcast', ...)`](#addlistenerbroadcast)
 * [`removeAllListeners()`](#removealllisteners)
-* [`__registerReceiver()`](#__registerreceiver)
 * [Interfaces](#interfaces)
 * [Type Aliases](#type-aliases)
 
@@ -67,100 +174,10 @@ Package name can be changed by modyfing `DATAWEDGE_PACKAGE` variable [here](andr
 <docgen-api>
 <!--Update the source file JSDoc comments and rerun docgen to update the docs below-->
 
-### enable()
-
-```typescript
-enable() => Promise<void>
-```
-
-Enables DataWedge
-
-Broadcasts intent action with `.ENABLE_DATAWEDGE` extra set to `true`
-
-**Since:** 0.0.3
-
---------------------
-
-
-### disable()
-
-```typescript
-disable() => Promise<void>
-```
-
-Disables DataWedge
-
-Broadcasts intent action with `.ENABLE_DATAWEDGE` extra set to `false`
-
-**Since:** 0.0.3
-
---------------------
-
-
-### enableScanner()
-
-```typescript
-enableScanner() => Promise<void>
-```
-
-Enables physical scanner
-
-Broadcasts intent action with `.SCANNER_INPUT_PLUGIN` extra set to `ENABLE_PLUGIN`
-
-**Since:** 0.0.3
-
---------------------
-
-
-### disableScanner()
-
-```typescript
-disableScanner() => Promise<void>
-```
-
-Disables physical scanner
-
-Broadcasts intent action with `.SCANNER_INPUT_PLUGIN` extra set to `DISABLE_PLUGIN`
-
-**Since:** 0.0.3
-
---------------------
-
-
-### startScanning()
-
-```typescript
-startScanning() => Promise<void>
-```
-
-Starts software scanning trigger
-
-Broadcasts intent action with `.SOFT_SCAN_TRIGGER` extra set to `START_SCANNING`
-
-**Since:** 0.1.2
-
---------------------
-
-
-### stopScanning()
-
-```typescript
-stopScanning() => Promise<void>
-```
-
-Stops software scanning trigger
-
-Broadcasts intent action with `.SOFT_SCAN_TRIGGER` extra set to `STOP_SCANNING`
-
-**Since:** 0.1.2
-
---------------------
-
-
 ### registerBroadcastReceiver(...)
 
 ```typescript
-registerBroadcastReceiver(filter: BroadcastReceiverFilter) => Promise<void>
+registerBroadcastReceiver(filter: BroadcastReceiverFilter) => any
 ```
 
 Register broadcast receiver
@@ -169,7 +186,9 @@ Register broadcast receiver
 | ------------ | --------------------------------------------------------------------------- |
 | **`filter`** | <code><a href="#broadcastreceiverfilter">BroadcastReceiverFilter</a></code> |
 
-**Since:** 0.3.0
+**Returns:** <code>any</code>
+
+**Since:** 0.4.0
 
 --------------------
 
@@ -177,7 +196,7 @@ Register broadcast receiver
 ### sendBroadcastWithExtras(...)
 
 ```typescript
-sendBroadcastWithExtras(intent: BroadcastIntent) => Promise<void>
+sendBroadcastWithExtras(intent: BroadcastIntent) => any
 ```
 
 Send broadcast with extras
@@ -186,29 +205,31 @@ Send broadcast with extras
 | ------------ | ----------------------------------------------------------- |
 | **`intent`** | <code><a href="#broadcastintent">BroadcastIntent</a></code> |
 
-**Since:** 0.3.0
+**Returns:** <code>any</code>
+
+**Since:** 0.4.0
 
 --------------------
 
 
-### addListener('scan' | 'broadcast', ...)
+### addListener('broadcast', ...)
 
 ```typescript
-addListener(eventName: 'scan' | 'broadcast', listenerFunc: ScanListener | BroadcastListener) => Promise<PluginListenerHandle> & PluginListenerHandle
+addListener(eventName: 'broadcast', listenerFunc: BroadcastListener) => any
 ```
 
 Listen for successful barcode readings
 
 ***Notice:*** Requires intent action to be set to `com.capacitor.datawedge.RESULT_ACTION` in current DataWedge profile (it may change in the future)
 
-| Param              | Type                                                                                                        |
-| ------------------ | ----------------------------------------------------------------------------------------------------------- |
-| **`eventName`**    | <code>'scan' \| 'broadcast'</code>                                                                          |
-| **`listenerFunc`** | <code><a href="#scanlistener">ScanListener</a> \| <a href="#broadcastlistener">BroadcastListener</a></code> |
+| Param              | Type                                                            |
+| ------------------ | --------------------------------------------------------------- |
+| **`eventName`**    | <code>'broadcast'</code>                                        |
+| **`listenerFunc`** | <code><a href="#broadcastlistener">BroadcastListener</a></code> |
 
-**Returns:** <code>Promise&lt;<a href="#pluginlistenerhandle">PluginListenerHandle</a>&gt; & <a href="#pluginlistenerhandle">PluginListenerHandle</a></code>
+**Returns:** <code>any</code>
 
-**Since:** 0.1.0
+**Since:** 0.4.0
 
 --------------------
 
@@ -216,27 +237,14 @@ Listen for successful barcode readings
 ### removeAllListeners()
 
 ```typescript
-removeAllListeners() => Promise<void>
+removeAllListeners() => any
 ```
 
 Remove all listeners
 
-**Since:** 0.3.0
+**Returns:** <code>any</code>
 
---------------------
-
-
-### __registerReceiver()
-
-```typescript
-__registerReceiver() => Promise<void>
-```
-
-Internal method to register intent broadcast receiver
-
-THIS METHOD IS FOR INTERNAL USE ONLY
-
-**Since:** 0.1.3
+**Since:** 0.4.0
 
 --------------------
 
@@ -246,17 +254,9 @@ THIS METHOD IS FOR INTERNAL USE ONLY
 
 #### PluginListenerHandle
 
-| Prop         | Type                                      |
-| ------------ | ----------------------------------------- |
-| **`remove`** | <code>() =&gt; Promise&lt;void&gt;</code> |
-
-
-#### ScanListenerEvent
-
-| Prop       | Type                        | Description     | Since |
-| ---------- | --------------------------- | --------------- | ----- |
-| **`data`** | <code>string</code>         | Data of barcode | 0.1.0 |
-| **`type`** | <code>string \| null</code> | Type of barcode | 0.2.1 |
+| Prop         | Type                      |
+| ------------ | ------------------------- |
+| **`remove`** | <code>() =&gt; any</code> |
 
 
 ### Type Aliases
@@ -275,11 +275,6 @@ THIS METHOD IS FOR INTERNAL USE ONLY
 #### JsonObject
 
 <code>{ [key: string]: | string | number | boolean | <a href="#jsonobject">JsonObject</a> | string[] | number[] | boolean[] | JsonObject[]; }</code>
-
-
-#### ScanListener
-
-<code>(state: <a href="#scanlistenerevent">ScanListenerEvent</a>): void</code>
 
 
 #### BroadcastListener
