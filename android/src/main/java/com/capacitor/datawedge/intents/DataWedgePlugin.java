@@ -1,5 +1,6 @@
 package com.capacitor.datawedge.intents;
 
+import android.os.Build;
 import android.os.Bundle;
 import com.getcapacitor.*;
 import com.getcapacitor.annotation.CapacitorPlugin;
@@ -72,7 +73,11 @@ public class DataWedgePlugin extends Plugin {
             }
 
             // Register the broadcast receiver with the specified filter
-            getContext().registerReceiver(genericReceiver, filter);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                getContext().registerReceiver(genericReceiver, filter, Context.RECEIVER_EXPORTED);
+            } else {
+                getContext().registerReceiver(genericReceiver, filter);
+            }
 
             // Resolve the plugin call
             call.resolve();
