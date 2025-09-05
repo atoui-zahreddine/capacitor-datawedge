@@ -160,7 +160,7 @@ This example demonstrates the basic steps to register the broadcast receiver, se
 
 * [`registerBroadcastReceiver(...)`](#registerbroadcastreceiver)
 * [`sendBroadcastWithExtras(...)`](#sendbroadcastwithextras)
-* [`addListener('broadcast', ...)`](#addlistenerbroadcast)
+* [`addListener('broadcast', ...)`](#addlistenerbroadcast-)
 * [`removeAllListeners()`](#removealllisteners)
 * [Interfaces](#interfaces)
 * [Type Aliases](#type-aliases)
